@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quiz Interculturel — Cégep Gérald-Godin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow-x:hidden;}
+body{font-family:'Nunito Sans',sans-serif;background:#080818;color:#fff;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:
+  radial-gradient(1px 1px at 15% 25%,rgba(255,255,255,0.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 85% 15%,rgba(255,255,255,0.3) 0%,transparent 100%),
+  radial-gradient(1px 1px at 45% 65%,rgba(255,255,255,0.35) 0%,transparent 100%),
+  radial-gradient(1px 1px at 75% 80%,rgba(255,255,255,0.25) 0%,transparent 100%),
+  radial-gradient(1px 1px at 25% 90%,rgba(255,255,255,0.2) 0%,transparent 100%),
+  radial-gradient(1px 1px at 60% 35%,rgba(255,255,255,0.3) 0%,transparent 100%);
+  pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;min-height:100vh;}
+
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── HOME ── */
+#home{align-items:center;justify-content:center;padding:30px 20px;text-align:center;}
+.globe{font-size:52px;margin-bottom:14px;animation:float 2s ease-in-out infinite alternate;}
+@keyframes float{from{transform:translateY(0);}to{transform:translateY(-10px);}}
+.app-title{font-family:‘Nunito’,sans-serif;font-size:clamp(30px,8vw,52px);font-weight:900;
+background:linear-gradient(135deg,#a78bfa,#ec4899,#38bdf8);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+line-height:1.05;letter-spacing:-1px;margin-bottom:8px;}
+.app-sub{color:#a78bfa;font-size:14px;font-weight:700;margin-bottom:22px;}
+
+.continent-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
+.tag{background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd;
+padding:7px 16px;border-radius:100px;font-size:13px;font-weight:700;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;
+max-width:400px;margin-bottom:28px;}
+.stat-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+border-radius:16px;padding:14px 8px;text-align:center;}
+.stat-val{font-family:‘Nunito’,sans-serif;font-size:24px;font-weight:900;color:#a855f7;}
+.stat-lbl{font-size:11px;color:#7c3aed;margin-top:3px;font-weight:700;}
+
+.name-input-wrap{width:100%;max-width:380px;margin-bottom:16px;}
+.name-input-wrap input{width:100%;background:rgba(255,255,255,0.07);
+border:1.5px solid rgba(139,92,246,0.35);border-radius:14px;padding:13px 18px;
+color:#fff;font-size:15px;font-family:‘Nunito Sans’,sans-serif;font-weight:700;
+outline:none;transition:border-color 0.2s;text-align:center;}
+.name-input-wrap input:focus{border-color:#8b5cf6;}
+.name-input-wrap input::placeholder{color:rgba(255,255,255,0.25);}
+
+.btn-play{font-family:‘Nunito’,sans-serif;
+background:linear-gradient(135deg,#7c3aed,#a855f7,#ec4899);
+color:#fff;border:none;border-radius:18px;padding:18px 0;font-size:20px;font-weight:900;
+cursor:pointer;width:100%;max-width:380px;
+box-shadow:0 8px 36px rgba(139,92,246,0.5);
+transition:transform 0.15s,box-shadow 0.15s;letter-spacing:0.5px;}
+.btn-play:hover{transform:scale(1.04);box-shadow:0 12px 44px rgba(139,92,246,0.65);}
+.btn-play:active{transform:scale(0.97);}
+
+.lb-link{margin-top:14px;color:rgba(167,139,250,0.6);font-size:13px;font-weight:700;
+cursor:pointer;text-align:center;}
+.lb-link:hover{color:#a78bfa;}
+
+/* ── QUIZ ── */
+#quiz{background:#080818;}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;
+padding:10px 14px;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);
+border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+.q-continent{font-size:11px;font-weight:700;opacity:0.7;max-width:110px;line-height:1.2;}
+.q-counter{font-family:‘Nunito’,sans-serif;font-weight:900;font-size:15px;}
+.score-pill{background:linear-gradient(135deg,#7c3aed,#a855f7);padding:5px 12px;
+border-radius:100px;font-family:‘Nunito’,sans-serif;font-weight:900;font-size:13px;white-space:nowrap;}
+.timer-track{height:5px;background:rgba(255,255,255,0.1);flex-shrink:0;}
+.timer-bar{height:100%;transition:width 1s linear,background-color 0.3s;}
+.timer-num{text-align:center;font-family:‘Nunito’,sans-serif;font-weight:900;font-size:22px;
+padding:6px 0 2px;transition:color 0.3s;flex-shrink:0;}
+.question-area{padding:10px 14px 8px;flex-shrink:0;}
+.question-box{background:rgba(255,255,255,0.06);border-radius:18px;padding:18px 16px;
+border:1px solid rgba(255,255,255,0.1);}
+.question-flag{font-size:26px;text-align:center;margin-bottom:6px;}
+.question-text{font-family:‘Nunito’,sans-serif;font-size:clamp(14px,3.8vw,19px);
+font-weight:800;text-align:center;line-height:1.4;}
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:8px 14px;flex:1;}
+.ans-btn{border:none;border-radius:14px;padding:12px 10px;font-family:‘Nunito’,sans-serif;
+font-size:clamp(12px,3vw,15px);font-weight:800;color:#fff;cursor:pointer;
+display:flex;align-items:center;gap:8px;text-align:left;line-height:1.3;
+transition:transform 0.15s,opacity 0.3s,box-shadow 0.3s;min-height:65px;}
+.ans-btn:hover:not(:disabled){transform:scale(1.03);}
+.ans-btn:active:not(:disabled){transform:scale(0.97);}
+.ans-shape{font-size:16px;flex-shrink:0;}
+.ans-btn.correct{box-shadow:0 0 28px rgba(39,174,96,0.7);transform:scale(1.04);}
+.ans-btn.wrong{opacity:0.5;}
+.ans-btn.dim{opacity:0.3;}
+.feedback-bar{margin:6px 14px 8px;padding:12px;border-radius:12px;text-align:center;
+font-family:‘Nunito’,sans-serif;font-weight:900;font-size:16px;display:none;
+animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes popIn{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* ── RESULTS ── */
+#results{align-items:center;justify-content:center;padding:24px 16px 32px;overflow-y:auto;}
+.medal{font-size:72px;margin-bottom:8px;animation:float 2s ease-in-out infinite alternate;}
+.res-title{font-family:‘Nunito’,sans-serif;font-size:32px;font-weight:900;margin-bottom:4px;}
+.res-score{font-family:‘Nunito’,sans-serif;font-size:46px;font-weight:900;
+background:linear-gradient(135deg,#f5a623,#a855f7);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:6px 0;}
+.res-sub{color:#7c3aed;font-size:16px;font-weight:700;margin-bottom:20px;}
+.res-msg{background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);
+border-radius:14px;padding:14px;max-width:380px;width:100%;margin-bottom:20px;
+font-size:14px;color:#c4b5fd;font-weight:600;line-height:1.5;text-align:center;}
+.res-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:380px;}
+.btn-secondary{font-family:‘Nunito’,sans-serif;background:rgba(255,255,255,0.07);
+color:#fff;border:1.5px solid rgba(255,255,255,0.15);border-radius:14px;
+padding:14px;font-size:16px;font-weight:900;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{background:rgba(255,255,255,0.13);}
+
+/* ── LEADERBOARD ── */
+#leaderboard{align-items:center;padding:20px 16px 32px;overflow-y:auto;}
+.lb-header{display:flex;align-items:center;justify-content:space-between;
+width:100%;max-width:420px;margin-bottom:18px;}
+.lb-title{font-family:‘Nunito’,sans-serif;font-size:26px;font-weight:900;}
+.back-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+border-radius:10px;padding:8px 14px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;}
+.lb-list{width:100%;max-width:420px;}
+.lb-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:12px 14px;margin-bottom:8px;}
+.lb-rank{font-family:‘Nunito’,sans-serif;font-weight:900;font-size:20px;width:36px;
+text-align:center;flex-shrink:0;}
+.lb-info{flex:1;}
+.lb-name{font-family:‘Nunito’,sans-serif;font-weight:800;font-size:15px;}
+.lb-detail{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.lb-pts{font-family:‘Nunito’,sans-serif;font-weight:900;font-size:18px;color:#f5a623;}
+.lb-empty{text-align:center;color:rgba(255,255,255,0.25);padding:48px 0;font-size:15px;}
+.lb-clear{margin-top:14px;color:rgba(255,80,80,0.5);font-size:12px;font-weight:700;
+cursor:pointer;text-align:center;}
+</style>
+
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+
+<div id="home" class="screen active">
+  <div class="globe">🌍🌎🌏</div>
+  <h1 class="app-title">QUIZ<br>INTERCULTUREL</h1>
+  <p class="app-sub">Journée Interculturelle — Cégep Gérald-Godin</p>
+
+  <div class="continent-tags">
+    <span class="tag">🌍 Afrique</span>
+    <span class="tag">🌎 Amériques</span>
+    <span class="tag">🌏 Asie & Palestine</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val">20</div><div class="stat-lbl">Questions</div></div>
+    <div class="stat-card"><div class="stat-val">20s</div><div class="stat-lbl">Par question</div></div>
+    <div class="stat-card"><div class="stat-val">500</div><div class="stat-lbl">Pts max</div></div>
+    <div class="stat-card"><div class="stat-val">🔥</div><div class="stat-lbl">Streaks !</div></div>
+  </div>
+
+  <div class="name-input-wrap">
+    <input type="text" id="player-name" placeholder="👤 Entre ton prénom..." maxlength="20">
+  </div>
+
+<button class="btn-play" onclick="startGame()">JOUER ! 🚀</button>
+
+  <div class="lb-link" onclick="showScreen('leaderboard')">🏆 Classement</div>
+</div>
+
+<!-- QUIZ -->
+
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <span class="q-continent" id="q-continent"></span>
+    <span class="q-counter"><span id="q-num">1</span><span style="opacity:0.4">/20</span></span>
+    <span class="score-pill">🔥 <span id="score-disp">0</span></span>
+  </div>
+  <div class="timer-track"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+  <div class="timer-num" id="timer-num">20s</div>
+  <div class="question-area">
+    <div class="question-box">
+      <div class="question-flag" id="q-flag"></div>
+      <p class="question-text" id="q-text"></p>
+    </div>
+  </div>
+  <div class="answers-grid" id="answers-grid"></div>
+  <div class="feedback-bar" id="feedback-bar"></div>
+</div>
+
+<!-- RESULTS -->
+
+<div id="results" class="screen">
+  <div class="medal" id="res-medal">🥇</div>
+  <h2 class="res-title">RÉSULTATS</h2>
+  <div class="res-score" id="res-score">0 pts</div>
+  <div class="res-sub" id="res-sub"></div>
+  <div class="res-msg" id="res-msg"></div>
+  <div class="res-btns">
+    <button class="btn-play" onclick="startGame()">🔄 REJOUER</button>
+    <button class="btn-secondary" onclick="showScreen('leaderboard')">🏆 Voir le classement</button>
+    <button class="btn-secondary" onclick="showScreen('home')">🏠 Accueil</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+
+<div id="leaderboard" class="screen">
+  <div class="lb-header">
+    <div class="lb-title">🏆 Classement</div>
+    <button class="back-btn" onclick="showScreen('home')">← Retour</button>
+  </div>
+  <div class="lb-list" id="lb-list"></div>
+  <div class="lb-clear" onclick="clearLB()">🗑️ Réinitialiser le classement</div>
+</div>
+
+</div>
+<script>
+const Q = [
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Dans quelle province se déroule le conflit armé en RDC ?",a:["Sud-Kivu","Nord-Kivu","Kasaï","Équateur"],ok:1},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Qui est le chanteur congolais le plus influent à l'international ?",a:["Koffi Olomidé","Werrason","Fally Ipupa","Ferré Gola"],ok:2},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quel matériau de la RDC sert à fabriquer les téléphones intelligents ?",a:["Le lithium","Le cobalt","Le coltan","Le diamant"],ok:2},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quelles sont les 3 couleurs du drapeau de la RDC ?",a:["Vert, jaune, rouge","Bleu, rouge et jaune","Noir, blanc, rouge","Bleu, blanc, vert"],ok:1},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quel patrimoine culturel congolais a été inscrit à l'UNESCO ?",a:["La danse Ndombolo","La rumba congolaise","Le tam-tam","Les masques Kuba"],ok:1},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Combien de langues sont parlées en RDC ?",a:["Environ 50","Environ 100","Environ 200-240","Environ 400"],ok:2},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quelle est la capitale de la RDC ?",a:["Brazzaville","Lubumbashi","Kisangani","Kinshasa"],ok:3},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quel est le nom du premier président congolais ?",a:["Patrice Lumumba","Mobutu Sese Seko","Joseph Kasa-Vubu","Laurent-Désiré Kabila"],ok:2},
+  {country:"Congo (RDC)",flag:"🇨🇩",continent:"africa",q:"Quelle est la date de l'indépendance de la RDC ?",a:["1er janvier 1960","15 août 1960","30 juin 1960","4 octobre 1958"],ok:2},
+  {country:"Cameroun",flag:"🇨🇲",continent:"africa",q:"Pourquoi dit-on que le Cameroun est 'l'Afrique en miniature' ?",a:["C'est le plus petit pays d'Afrique","Il regroupe presque tous les paysages et cultures d'Afrique 🌍","Il est au centre géographique","Il a la plus grande diversité animale"],ok:1},
+  {country:"Cameroun",flag:"🇨🇲",continent:"africa",q:"Le 'ndolé' est le plat national du Cameroun. C'est principalement :",a:["Un plat de poisson fumé","Des feuilles amères avec viande et crevettes 🍃","Du riz avec sauce arachide","Des brochettes de bœuf"],ok:1},
+  {country:"Cameroun",flag:"🇨🇲",continent:"africa",q:"Quelles sont les deux langues officielles du Cameroun ?",a:["Français et portugais","Français et espagnol","Français et anglais","Anglais et arabe"],ok:2},
+  {country:"Cameroun",flag:"🇨🇲",continent:"africa",q:"Quel surnom porte l'équipe nationale de football du Cameroun ?",a:["Les Éléphants","Les Super Eagles","Les Lions Indomptables 🦁","Les Aigles"],ok:2},
+  {country:"Côte d'Ivoire",flag:"🇨🇮",continent:"africa",q:"Le 'garba' est le plat le plus populaire en Côte d'Ivoire. C'est :",a:["Du riz aux légumes","Du thon avec de l'attiéké 🐟","De la viande de brousse grillée","Des plantains frits"],ok:1},
+  {country:"Côte d'Ivoire",flag:"🇨🇮",continent:"africa",q:"Le 'nouchi' parlé en Côte d'Ivoire, c'est :",a:["Une langue tribale ancienne","Un mélange créatif de français et langues locales 😎","Le dialecte Dioula officiel","Un créole colonial"],ok:1},
+  {country:"Côte d'Ivoire",flag:"🇨🇮",continent:"africa",q:"Quelle est la capitale économique de la Côte d'Ivoire ?",a:["Bouaké","Yamoussoukro","San-Pédro","Abidjan"],ok:3},
+  {country:"Côte d'Ivoire",flag:"🇨🇮",continent:"africa",q:"La Côte d'Ivoire est le premier producteur mondial de :",a:["Café","Bananes","Cacao ☕","Or"],ok:2},
+  {country:"Sénégal",flag:"🇸🇳",continent:"africa",q:"Le plat national du Sénégal est :",a:["Le thiéboudienne (riz au poisson) 🐟","Le yassa poulet","Le mafé","Le domoda"],ok:0},
+  {country:"Sénégal",flag:"🇸🇳",continent:"africa",q:"La 'teranga' est une valeur fondamentale au Sénégal. Elle signifie :",a:["Le courage","L'hospitalité et le partage 🤝","La fierté nationale","La solidarité familiale"],ok:1},
+  {country:"Sénégal",flag:"🇸🇳",continent:"africa",q:"Qui est le premier président du Sénégal, poète et intellectuel célèbre ?",a:["Abdou Diouf","Abdoulaye Wade","Léopold Sédar Senghor","Macky Sall"],ok:2},
+  {country:"Maroc",flag:"🇲🇦",continent:"africa",q:"Le plat le plus emblématique du Maroc est :",a:["La pastilla","Le couscous 🫕","Le tajine","La harira"],ok:2},
+  {country:"Maroc",flag:"🇲🇦",continent:"africa",q:"Quelle est la capitale du Maroc ?",a:["Casablanca","Marrakech","Fès","Rabat"],ok:3},
+  {country:"Maroc",flag:"🇲🇦",continent:"africa",q:"La djellaba est un vêtement traditionnel marocain. C'est :",a:["Un chapeau traditionnel","Une longue robe à capuche portée par hommes et femmes 👘","Un voile pour femmes","Une ceinture brodée"],ok:1},
+  {country:"Algérie",flag:"🇩🇿",continent:"africa",q:"L'Algérie est le plus grand pays d'Afrique. Sa superficie couvre surtout :",a:["Des forêts tropicales","Du désert du Sahara 🏜️","Des montagnes et lacs","Des plaines agricoles"],ok:1},
+  {country:"Algérie",flag:"🇩🇿",continent:"africa",q:"Quelle est la capitale de l'Algérie ?",a:["Oran","Constantine","Annaba","Alger"],ok:3},
+  {country:"Algérie",flag:"🇩🇿",continent:"africa",q:"Quel artiste a popularisé le raï algérien à l'international ?",a:["Khaled 🎵","Rachid Taha","Cheb Mami","Faudel"],ok:0},
+  {country:"Venezuela",flag:"🇻🇪",continent:"americas",q:"L'arepa est la nourriture de base au Venezuela. C'est :",a:["Une soupe de maïs","Une galette de maïs fourrée 🫓","Un pain sucré","Un beignet frit"],ok:1},
+  {country:"Venezuela",flag:"🇻🇪",continent:"americas",q:"La 'hallaca' au Venezuela se mange surtout à :",a:["Pâques","Le carnaval","Noël et les fêtes de fin d'année 🎄","La fête nationale"],ok:2},
+  {country:"Venezuela",flag:"🇻🇪",continent:"americas",q:"Quelle est la ressource naturelle principale du Venezuela ?",a:["Le café","Le diamant","Le pétrole 🛢️","Le cacao"],ok:2},
+  {country:"Pérou",flag:"🇵🇪",continent:"americas",q:"Le Machu Picchu au Pérou est une ancienne cité de quelle civilisation ?",a:["Maya","Aztèque","Inca 🏔️","Olmèque"],ok:2},
+  {country:"Pérou",flag:"🇵🇪",continent:"americas",q:"Le ceviche est le plat emblématique du Pérou. Il est fait de :",a:["Poisson cuit au four","Poisson cru mariné au citron vert 🍋","Crevettes grillées","Thon en conserve"],ok:1},
+  {country:"Pérou",flag:"🇵🇪",continent:"americas",q:"Quelle est la capitale du Pérou ?",a:["Cusco","Arequipa","Trujillo","Lima"],ok:3},
+  {country:"Haïti",flag:"🇭🇹",continent:"americas",q:"Haïti est le premier pays des Amériques à avoir aboli l'esclavage. En quelle année ?",a:["1776","1793","1804 ✊","1865"],ok:2},
+  {country:"Haïti",flag:"🇭🇹",continent:"americas",q:"Le 'griot' est le plat national d'Haïti. C'est :",a:["Un ragoût de poulet","Du porc frit croustillant 🐷","Une soupe aux légumes","Du poisson grillé"],ok:1},
+  {country:"Colombie",flag:"🇨🇴",continent:"americas",q:"La cumbia est une danse emblématique de Colombie. Elle est originaire de :",a:["La région andine","La côte caraïbe colombienne 💃","Les Llanos orientaux","La région amazonienne"],ok:1},
+  {country:"Brésil",flag:"🇧🇷",continent:"americas",q:"Le carnaval de Rio dure officiellement combien de jours ?",a:["2 jours","4 jours 🎉","7 jours","10 jours"],ok:1},
+  {country:"Brésil",flag:"🇧🇷",continent:"americas",q:"Pourquoi le Brésil est-il le seul pays lusophone d'Amérique du Sud ?",a:["Il a choisi le portugais volontairement","Il était sous domination espagnole","Il a été colonisé par le Portugal 🇵🇹","Sa langue originale ressemblait au portugais"],ok:2},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Le musakhan est un plat emblématique de Palestine. Il est composé de :",a:["Agneau et riz","Poulet, oignons caramélisés et sumac sur pain taboun 🍗","Falafel et houmous","Poisson grillé et herbes"],ok:1},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"En arabe palestinien, 'yalla' signifie :",a:["Non merci","Au revoir","S'il te plaît","Allez, on y va ! 🚀"],ok:3},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"La Nakba (1948) — 'Nakba' signifie en arabe :",a:["La victoire","La résistance","La catastrophe 💔","La libération"],ok:2},
+  {country:"Japon",flag:"🇯🇵",continent:"asia",q:"Au Japon, planter ses baguettes verticalement dans le riz c'est :",a:["Un signe de bonne santé","Une façon de demander plus","Impoli car associé aux funérailles 😬","Obligatoire avant de manger"],ok:2},
+  {country:"Japon",flag:"🇯🇵",continent:"asia",q:"Le concept japonais 'ikigai' signifie :",a:["Honorer ses ancêtres","La raison d'être, ce qui donne sens à la vie ✨","Le respect des supérieurs","L'art du rangement"],ok:1},
+  {country:"Corée du Sud",flag:"🇰🇷",continent:"asia",q:"Quel groupe coréen a dominé les charts américains en premier ?",a:["EXO","BLACKPINK","BTS 🎤","TWICE"],ok:2},
+  {country:"Corée du Sud",flag:"🇰🇷",continent:"asia",q:"Le kimchi est un aliment de base coréen. C'est :",a:["Un bouillon de bœuf","Des légumes fermentés (souvent du chou) 🥬","Du riz gluant sucré","Une soupe de tofu"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Le houmous est originaire du Liban et de la région. Il est fait de :",a:["Lentilles et épices","Pois chiches, tahini, citron et ail","Haricots blancs et tomates","Aubergines grillées"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quelle est la capitale du Liban ?",a:["Tripoli","Sidon","Beyrouth","Tyr"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quelle est la monnaie utilisée au Liban ?",a:["Shekel","Lira","Dinar","Dirham"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quel est l'arbre national du Liban ?",a:["Le palmier","Le chêne","Le cèdre","L'olivier"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quelles sont les deux langues officiellement parlées au Liban ?",a:["Arabe et anglais","Arabe et français","Français et anglais","Arabe et turc"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Dans quel continent se trouve le Liban ?",a:["Afrique","Europe","Asie","Océanie"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Vrai ou faux ? Le Liban est le seul pays du Moyen-Orient à ne pas avoir de désert.",a:["Vrai","Faux","Seulement en partie","On ne sait pas"],ok:0},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quelle mer borde le Liban ?",a:["La mer Rouge","La mer Noire","La mer Méditerranée","La mer Caspienne"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quel est le surnom historique de la ville de Beyrouth ?",a:["Le Paris du Moyen-Orient","La belle baie","Beyrouth la lumineuse","La perle du Levant"],ok:0},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quel est l'un des plus grands sites romains au Liban ?",a:["Pompéi","Baalbek","Éphèse","Carthage"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Comment appelait-on les Libanais dans l'Antiquité ?",a:["Les Mésopotamiens","Les Sumériens","Les Phéniciens","Les Byzantins"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Comment dit-on oui et non en libanais ?",a:["Aiwa et La","Eh et La2","Na'am et Laa","Iva et Hayir"],ok:1},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Quelle ville du Liban est considérée comme l'une des plus anciennes au monde ?",a:["Dahiyé","Batroun","Byblos","Jounieh"],ok:2},
+  {country:"Liban",flag:"🇱🇧",continent:"asia",q:"Laquelle est une chanteuse très populaire originaire du Liban ?",a:["Umm Kulthum","Fairuz","Dalida","Warda"],ok:1},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quelle est la capitale de la Palestine ?",a:["Ramallah","Gaza","Hébron","Jérusalem"],ok:3},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quelle est la langue parlée en Palestine ?",a:["Hébreu","Arabe","Persan","Turc"],ok:1},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Dans quel continent se trouve la Palestine ?",a:["Afrique","Europe","Asie","Amérique"],ok:2},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quelle mer borde la Palestine ?",a:["La mer Rouge","La mer Noire","La mer Méditerranée","La mer Morte"],ok:2},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel est le surnom de la ville de Jérusalem ?",a:["La ville Sainte","La ville dorée","La ville ancienne","La ville éternelle"],ok:0},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel est le plat traditionnel de la Palestine ?",a:["Maqluba","Mushakhan","Feuille de vigne","Falafel"],ok:0},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel est le symbole vestimentaire important de la Palestine ?",a:["Le tarbouch","La abaya","La kuffiyeh","Le kaftan"],ok:2},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel est le fruit le plus cultivé en Palestine ?",a:["La figue","La grenade","Les olives","Le raisin"],ok:2},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Qui est le chanteur palestinien parmi ces artistes ?",a:["Mohammad Assaf","Wael Kfoury","Nassif Zeytoun","Ragheb Alama"],ok:0},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel emoji est devenu un symbole de solidarité avec la Palestine ?",a:["La pastèque (melon d'eau)","L'olive","Le pain pita","La colombe"],ok:0},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quelle mosquée est un lieu saint pour les musulmans en Palestine ?",a:["Mosquée Al-Aqsa","Mosquée Hagia Sophia","Mosquée Al-Huda","Mosquée Al-Azhar"],ok:0},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Qui a été le premier président de l'Autorité nationale palestinienne ?",a:["Mahmoud Abbas","Yasser Arafat","Hosni Mubarak","Ismail Haniyeh"],ok:1},
+  {country:"Palestine",flag:"🇵🇸",continent:"asia",q:"Quel est le dessert le plus populaire en Palestine ?",a:["Knafe","Baklawa","Atayef","Halva"],ok:0},
+  {country:"Quiz général",flag:"🌍",continent:"africa",q:"En Afrique, si ta tante dit 'viens manger' mais que tu viens de manger... tu fais quoi ?",a:["Tu refuses poliment","Tu t'assois et tu manges encore","Tu mens que t'es malade","Tu pars en courant"],ok:1},
+  {country:"Quiz général",flag:"🌎",continent:"americas",q:"En Amérique latine, 'ahorita' au Mexique ça veut dire :",a:["Maintenant, tout de suite !","Dans 5 minutes... ou peut-être jamais","Demain matin","Dans une heure exactement"],ok:1},
+  {country:"Quiz général",flag:"🌏",continent:"asia",q:"Le bubble tea (thé aux perles) vient originalement de quel pays ?",a:["Chine","Japon","Corée du Sud","Taïwan"],ok:3},
+  {country:"Quiz général",flag:"🌍",continent:"africa",q:"Le concept philosophique 'ubuntu' originaire d'Afrique signifie :",a:["Chacun pour soi","Je suis parce que nous sommes","La force du guerrier","L'amour de la nature"],ok:1},
+  {country:"Quiz général",flag:"🌎",continent:"americas",q:"Au Canada, quelle province a le français comme seule langue officielle ?",a:["Ontario","Nouveau-Brunswick","Manitoba","Québec"],ok:3},
+];
+
+const COLORS=[”#e74c3c”,”#2980b9”,”#e67e22”,”#27ae60”];
+const SHAPES=[“▲”,“♦”,“●”,“■”];
+const BG={africa:“radial-gradient(ellipse at top,#1a0800 0%,#080818 60%)”,
+americas:“radial-gradient(ellipse at top,#001a08 0%,#080818 60%)”,
+asia:“radial-gradient(ellipse at top,#00071a 0%,#080818 60%)”};
+
+let gameQ=[],cur=0,score=0,streak=0,timer=20,timerInt=null,answered=false,correct=0,playerName=’’;
+
+function showScreen(id){
+document.querySelectorAll(’.screen’).forEach(s=>s.classList.remove(‘active’));
+document.getElementById(id).classList.add(‘active’);
+if(id===‘leaderboard’) renderLB();
+}
+
+function shuffle(a){return […a].sort(()=>Math.random()-0.5);}
+
+function startGame(){
+playerName=document.getElementById(‘player-name’).value.trim()||‘Anonyme’;
+// Pick 20 random questions, shuffle answer order
+gameQ=shuffle(Q).slice(0,20).map(q=>{
+const indexed=q.a.map((ans,i)=>({ans,isOk:i===q.ok}));
+const sh=shuffle(indexed);
+return{…q,a:sh.map(x=>x.ans),ok:sh.findIndex(x=>x.isOk)};
+});
+cur=0;score=0;streak=0;correct=0;
+showScreen(‘quiz’);
+loadQ();
+}
+
+function loadQ(){
+answered=false;
+clearInterval(timerInt);
+timer=20;
+const q=gameQ[cur];
+document.getElementById(‘quiz’).style.background=BG[q.continent]||BG.africa;
+document.getElementById(‘q-continent’).textContent=`${q.flag} ${q.country}`;
+document.getElementById(‘q-num’).textContent=cur+1;
+document.getElementById(‘score-disp’).textContent=score.toLocaleString();
+document.getElementById(‘q-flag’).textContent=q.flag;
+document.getElementById(‘q-text’).textContent=q.q;
+document.getElementById(‘feedback-bar’).style.display=‘none’;
+
+const grid=document.getElementById(‘answers-grid’);
+grid.innerHTML=’’;
+q.a.forEach((ans,i)=>{
+const btn=document.createElement(‘button’);
+btn.className=‘ans-btn’;
+btn.style.background=COLORS[i];
+btn.innerHTML=`<span class="ans-shape">${SHAPES[i]}</span><span>${ans}</span>`;
+btn.onclick=()=>pick(i);
+grid.appendChild(btn);
+});
+updateTimer();
+timerInt=setInterval(()=>{timer–;updateTimer();if(timer<=0){clearInterval(timerInt);pick(null);}},1000);
+}
+
+function updateTimer(){
+const pct=(timer/20)*100;
+const c=timer>10?’#2ecc71’:timer>5?’#f39c12’:’#e74c3c’;
+const bar=document.getElementById(‘timer-bar’);
+bar.style.width=pct+’%’;bar.style.backgroundColor=c;bar.style.boxShadow=`0 0 10px ${c}`;
+const num=document.getElementById(‘timer-num’);
+num.style.color=c;num.style.textShadow=`0 0 20px ${c}`;num.textContent=timer+‘s’;
+}
+
+function pick(idx){
+if(answered)return;
+answered=true;
+clearInterval(timerInt);
+const q=gameQ[cur];
+document.querySelectorAll(’.ans-btn’).forEach((btn,i)=>{
+btn.disabled=true;
+if(i===q.ok){btn.classList.add(‘correct’);btn.style.background=’#27ae60’;}
+else if(i===idx&&i!==q.ok){btn.classList.add(‘wrong’);btn.style.background=’#c0392b’;}
+else btn.classList.add(‘dim’);
+});
+const fb=document.getElementById(‘feedback-bar’);
+fb.style.display=‘block’;
+if(idx===q.ok){
+const pts=Math.max(100,Math.round(timer*50));
+score+=pts;streak++;correct++;
+fb.style.background=‘rgba(39,174,96,0.2)’;fb.style.border=‘1px solid #27ae60’;
+fb.textContent=streak>1?`✅ +${pts} pts 🔥 x${streak} STREAK !`:`✅ Bonne réponse ! +${pts} pts`;
+}else{
+streak=0;
+fb.style.background=‘rgba(192,57,43,0.2)’;fb.style.border=‘1px solid #c0392b’;
+fb.textContent=idx===null?‘⏰ Temps écoulé !’:‘❌ Raté !’;
+}
+document.getElementById(‘score-disp’).textContent=score.toLocaleString();
+setTimeout(()=>{cur++;if(cur>=gameQ.length)showResults();else loadQ();},2000);
+}
+
+function showResults(){
+saveScore();
+const total=gameQ.length,pct=Math.round((correct/total)*100);
+document.getElementById(‘res-medal’).textContent=pct>=80?‘🥇’:pct>=60?‘🥈’:pct>=40?‘🥉’:‘😅’;
+document.getElementById(‘res-score’).textContent=score.toLocaleString()+’ pts’;
+document.getElementById(‘res-sub’).textContent=`${correct} / ${total} bonnes réponses (${pct}%)`;
+const msgs=[[80,“🔥 Incroyable ! Tu es un(e) vrai(e) expert(e) interculturel(le) !”],[60,“👏 Pas mal ! Tu connais bien les cultures du monde.”],[40,“📚 Tu apprends ! Rejoue et découvre encore plus !”],[0,“🌍 C’est un début ! L’important c’est d’apprendre. Rejoue !”]];
+document.getElementById(‘res-msg’).textContent=msgs.find(([m])=>pct>=m)[1];
+showScreen(‘results’);
+}
+
+function saveScore(){
+const data=JSON.parse(localStorage.getItem(‘qs’)||’[]’);
+data.push({name:playerName,score,correct,total:gameQ.length,date:new Date().toLocaleDateString(‘fr-CA’)});
+data.sort((a,b)=>b.score-a.score);
+localStorage.setItem(‘qs’,JSON.stringify(data.slice(0,50)));
+}
+
+function renderLB(){
+const data=JSON.parse(localStorage.getItem(‘qs’)||’[]’);
+const list=document.getElementById(‘lb-list’);
+if(!data.length){list.innerHTML=’<div class="lb-empty">🌍 Aucun score encore.<br>Sois le·la premier·ère à jouer !</div>’;return;}
+const m=[‘🥇’,‘🥈’,‘🥉’];
+list.innerHTML=data.map((b,i)=>` <div class="lb-item"> <div class="lb-rank">${m[i]||(i+1)}</div> <div class="lb-info"> <div class="lb-name">${b.name}</div> <div class="lb-detail">${b.correct}/${b.total} bonnes · ${b.date}</div> </div> <div class="lb-pts">${b.score.toLocaleString()}</div> </div>`).join(’’);
+}
+
+function clearLB(){
+if(confirm(‘Effacer tout le classement ?’)){localStorage.removeItem(‘qs’);renderLB();}
+}
+</script>
+
+</body>
+</html>
